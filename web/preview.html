@@ -1,0 +1,317 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Protogen Full Panel</title>
+<style>
+body {
+  background: #222;
+  color: #eee;
+  font-family: sans-serif;
+  text-align: center;
+  padding: 20px;
+}
+
+.screen {
+  display: grid;
+  gap: 1px;
+  margin: 10px auto 20px;
+  width: max-content;
+}
+
+.pixel {
+  border-radius: 2px;
+  transition: background 0.3s ease-in-out, box-shadow 0.3s ease-in-out;
+  background: #11111b;
+}
+
+select {
+  font-size: 14px;
+  padding: 4px;
+  margin: 0 5px;
+}
+
+.section {
+  margin-bottom: 30px;
+}
+
+h3 { margin-bottom: 5px; }
+</style>
+</head>
+<body>
+
+<h1>Protogen Full Panel</h1>
+
+<!-- Eyes 0-11 -->
+<div class="section">
+  <h3>Eyes (0-11)</h3>
+  <select id="eyesSelect">
+    <option value="0">Eyes 0</option>
+    <option value="1">Eyes 1</option>
+    <option value="2">Eyes 2</option>
+    <option value="3">Eyes 3</option>
+    <option value="4">Eyes 4</option>
+    <option value="5">Eyes 5</option>
+    <option value="6">Eyes 6</option>
+    <option value="7">Eyes 7</option>
+    <option value="8">Eyes 8</option>
+    <option value="9">Eyes 9</option>
+    <option value="10">Eyes 10</option>
+    <option value="11">Eyes 11</option>
+  </select>
+  <div id="eyesScreen" class="screen"></div>
+</div>
+
+<!-- Nose 0-7 -->
+<div class="section">
+  <h3>Nose (0-7)</h3>
+  <select id="noseSelect">
+    <option value="0">Nose 0</option>
+    <option value="1">Nose 1</option>
+    <option value="2">Nose 2</option>
+    <option value="3">Nose 3</option>
+    <option value="4">Nose 4</option>
+    <option value="5">Nose 5</option>
+    <option value="6">Nose 6</option>
+    <option value="7">Nose 7</option>
+  </select>
+  <div id="noseScreen" class="screen"></div>
+</div>
+
+<!-- Jaws 0-3 -->
+<div class="section">
+  <h3>Jaws (0-3)</h3>
+  <select id="jawsSelect">
+    <option value="0">Jaws 0</option>
+    <option value="1">Jaws 1</option>
+    <option value="2">Jaws 2</option>
+    <option value="3">Jaws 3</option>
+  </select>
+  <div id="jawsScreen" class="screen"></div>
+</div>
+
+<!-- Eyes OWO 0-4 -->
+<div class="section">
+  <h3>Eyes OWO (0-4)</h3>
+  <select id="owoEyesSelect">
+    <option value="0">Eyes OWO 0</option>
+    <option value="1">Eyes OWO 1</option>
+    <option value="2">Eyes OWO 2</option>
+    <option value="3">Eyes OWO 3</option>
+    <option value="4">Eyes OWO 4</option>
+  </select>
+  <div id="owoEyesScreen" class="screen"></div>
+</div>
+
+<!-- Angry Eyes 0-3 -->
+<div class="section">
+  <h3>Angry Eyes (0-3)</h3>
+  <select id="angEyesSelect">
+    <option value="0">Angry Eyes 0</option>
+    <option value="1">Angry Eyes 1</option>
+    <option value="2">Angry Eyes 2</option>
+    <option value="3">Angry Eyes 3</option>
+  </select>
+  <div id="angEyesScreen" class="screen"></div>
+</div>
+
+<!-- Dead Eyes 0-4 -->
+<div class="section">
+  <h3>Dead Eyes (0-4)</h3>
+  <select id="deadEyesSelect">
+    <option value="0">Dead Eyes 0</option>
+    <option value="1">Dead Eyes 1</option>
+    <option value="2">Dead Eyes 2</option>
+    <option value="3">Dead Eyes 3</option>
+    <option value="4">Dead Eyes 4</option>
+  </select>
+  <div id="deadEyesScreen" class="screen"></div>
+</div>
+
+<!-- Mouth OWO 0-3 -->
+<div class="section">
+  <h3>Mouth OWO (0-3)</h3>
+  <select id="owoMouthSelect">
+    <option value="0">Mouth OWO 0</option>
+    <option value="1">Mouth OWO 1</option>
+    <option value="2">Mouth OWO 2</option>
+    <option value="3">Mouth OWO 3</option>
+  </select>
+  <div id="owoMouthScreen" class="screen"></div>
+</div>
+
+<!-- Angry Mouth 0-3 -->
+<div class="section">
+  <h3>Angry Mouth (0-3)</h3>
+  <select id="angMouthSelect">
+    <option value="0">Angry Mouth 0</option>
+    <option value="1">Angry Mouth 1</option>
+    <option value="2">Angry Mouth 2</option>
+    <option value="3">Angry Mouth 3</option>
+  </select>
+  <div id="angMouthScreen" class="screen"></div>
+</div>
+
+<!-- Dead Mouth 0-3 -->
+<div class="section">
+  <h3>Dead Mouth (0-3)</h3>
+  <select id="deadMouthSelect">
+    <option value="0">Dead Mouth 0</option>
+    <option value="1">Dead Mouth 1</option>
+    <option value="2">Dead Mouth 2</option>
+    <option value="3">Dead Mouth 3</option>
+  </select>
+  <div id="deadMouthScreen" class="screen"></div>
+</div>
+<script>
+// Colors
+const BLACK = "#11111b"
+const BLUE = "#89b4fa"
+
+// Utility: create a grid of divs
+function createGrid(screenEl, width, height) {
+  screenEl.innerHTML = ""
+  screenEl.style.gridTemplateColumns = `repeat(${width}, 15px)`
+  screenEl.style.gridTemplateRows = `repeat(${height}, 15px)`
+  let pixels = []
+  for (let i=0;i<width*height;i++){
+    const div = document.createElement("div")
+    div.classList.add("pixel")
+    div.style.background = BLACK
+    div.style.boxShadow = "none"
+    screenEl.appendChild(div)
+    pixels.push(div)
+  }
+  return pixels
+}
+
+// Animate a pixel
+function animatePixel(pixels,index,val){
+  const delay = Math.random()*300 +100
+  setTimeout(()=>{
+    const color = val===0? BLACK : BLUE
+    pixels[index].style.background = color
+    pixels[index].style.boxShadow = val===0? "none" : `0 0 8px ${BLUE},0 0 16px ${BLUE}`
+  },delay)
+}
+
+// Fill a grid based on a 2D array
+function fillGrid(pixels,valueArr){
+  for(let i=0;i<pixels.length;i++){
+    animatePixel(pixels,i,valueArr[i])
+  }
+}
+
+// --- PIXEL ART PATTERNS --- //
+// 0 = off, 1 = on
+const eyesPatterns = [
+  // Eyes 0
+  Array(16*8).fill(0), 
+  // Eyes 1 (example simple pattern)
+  [
+    0,1,1,0,0,1,1,0, 0,0,0,0,0,0,0,0,
+    1,1,1,1,1,1,1,1, 0,0,0,0,0,0,0,0,
+    1,1,1,1,1,1,1,1, 0,0,0,0,0,0,0,0,
+    1,1,1,1,1,1,1,1, 0,0,0,0,0,0,0,0,
+    1,1,1,1,1,1,1,1, 0,0,0,0,0,0,0,0,
+    1,1,1,1,1,1,1,1, 0,0,0,0,0,0,0,0,
+    1,1,1,1,1,1,1,1, 0,0,0,0,0,0,0,0,
+    0,1,1,0,0,1,1,0, 0,0,0,0,0,0,0,0
+  ]
+]
+
+// Similar for other features: Nose
+const nosePatterns = [
+  // Nose 0
+  Array(8*8).fill(0),
+  // Nose 1 (your example)
+  [
+    0,1,1,1,1,1,1,0,
+    1,1,1,1,1,1,1,1,
+    1,1,1,1,1,1,1,1,
+    1,1,1,1,1,1,1,1,
+    1,1,1,1,1,1,1,1,
+    1,1,1,1,1,1,1,1,
+    1,1,1,1,1,1,1,1,
+    0,1,1,1,1,1,1,0
+  ]
+]
+
+// Jaws
+const jawsPatterns = [
+  Array(32*8).fill(0),
+  Array(32*8).fill(1)
+]
+
+// OWO Eyes
+const owoEyesPatterns = [
+  Array(16*8).fill(0),
+  Array(16*8).fill(1)
+]
+
+// Angry Eyes
+const angEyesPatterns = [
+  Array(16*8).fill(0),
+  Array(16*8).fill(1)
+]
+
+// Dead Eyes
+const deadEyesPatterns = [
+  Array(16*8).fill(0),
+  Array(16*8).fill(1)
+]
+
+// OWO Mouth
+const owoMouthPatterns = [
+  Array(32*8).fill(0),
+  Array(32*8).fill(1)
+]
+
+// Angry Mouth
+const angMouthPatterns = [
+  Array(32*8).fill(0),
+  Array(32*8).fill(1)
+]
+
+// Dead Mouth
+const deadMouthPatterns = [
+  Array(32*8).fill(0),
+  Array(32*8).fill(1)
+]
+
+// --- Create all panels ---
+const eyesPixels = createGrid(document.getElementById("eyesScreen"),16,8)
+const nosePixels = createGrid(document.getElementById("noseScreen"),8,8)
+const jawsPixels = createGrid(document.getElementById("jawsScreen"),32,8)
+const owoEyesPixels = createGrid(document.getElementById("owoEyesScreen"),16,8)
+const angEyesPixels = createGrid(document.getElementById("angEyesScreen"),16,8)
+const deadEyesPixels = createGrid(document.getElementById("deadEyesScreen"),16,8)
+const owoMouthPixels = createGrid(document.getElementById("owoMouthScreen"),32,8)
+const angMouthPixels = createGrid(document.getElementById("angMouthScreen"),32,8)
+const deadMouthPixels = createGrid(document.getElementById("deadMouthScreen"),32,8)
+
+// --- Add listeners ---
+document.getElementById("eyesSelect").addEventListener("change",e=>fillGrid(eyesPixels,eyesPatterns[parseInt(e.target.value)]))
+document.getElementById("noseSelect").addEventListener("change",e=>fillGrid(nosePixels,nosePatterns[parseInt(e.target.value)]))
+document.getElementById("jawsSelect").addEventListener("change",e=>fillGrid(jawsPixels,jawsPatterns[parseInt(e.target.value)]))
+document.getElementById("owoEyesSelect").addEventListener("change",e=>fillGrid(owoEyesPixels,owoEyesPatterns[parseInt(e.target.value)]))
+document.getElementById("angEyesSelect").addEventListener("change",e=>fillGrid(angEyesPixels,angEyesPatterns[parseInt(e.target.value)]))
+document.getElementById("deadEyesSelect").addEventListener("change",e=>fillGrid(deadEyesPixels,deadEyesPatterns[parseInt(e.target.value)]))
+document.getElementById("owoMouthSelect").addEventListener("change",e=>fillGrid(owoMouthPixels,owoMouthPatterns[parseInt(e.target.value)]))
+document.getElementById("angMouthSelect").addEventListener("change",e=>fillGrid(angMouthPixels,angMouthPatterns[parseInt(e.target.value)]))
+document.getElementById("deadMouthSelect").addEventListener("change",e=>fillGrid(deadMouthPixels,deadMouthPatterns[parseInt(e.target.value)]))
+
+// --- Initialize all grids ---
+fillGrid(eyesPixels,eyesPatterns[0])
+fillGrid(nosePixels,nosePatterns[0])
+fillGrid(jawsPixels,jawsPatterns[0])
+fillGrid(owoEyesPixels,owoEyesPatterns[0])
+fillGrid(angEyesPixels,angEyesPatterns[0])
+fillGrid(deadEyesPixels,deadEyesPatterns[0])
+fillGrid(owoMouthPixels,owoMouthPatterns[0])
+fillGrid(angMouthPixels,angMouthPatterns[0])
+fillGrid(deadMouthPixels,deadMouthPatterns[0])
+</script>
+</body>
+</html>
