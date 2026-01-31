@@ -1,11 +1,165 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
+
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
+    <title>Mod Selector</title>
 </head>
+
 <body>
-    
+    <h2>Avatar Mod Selector</h2>
+
+    <span>ID:</span> <input id="username" type="text"><br><br>
+    <span>Password:</span> <input id="password" type="password"><br><br>
+    <button onclick="fetchConfig()">Fetch Config</button>
+    <button onclick="saveConfig()">Save Config</button><br><br>
+
+    <label>Jaws: <select id="mod_jaws">
+            <option value="0">type1</option>
+            <option value="1">thin</option>
+            <option value="2" selected>standart</option>
+            <option value="3">beautiful</option>
+        </select></label><br><br>
+
+    <label>Eyes: <select id="mod_eye">
+            <option value="0" selected>mk3</option>
+            <option value="1">ellipse</option>
+            <option value="2">classic</option>
+            <option value="3">triangular</option>
+            <option value="4">semicircular</option>
+            <option value="5">strange</option>
+            <option value="6">squinted</option>
+            <option value="7">mk5</option>
+            <option value="8">unusual</option>
+            <option value="9">corner</option>
+            <option value="10">alt-squinted</option>
+            <option value="11">stripes</option>
+        </select></label><br><br>
+
+    <label>Nostrils: <select id="mod_nose">
+            <option value="0">mini</option>
+            <option value="1">dots</option>
+            <option value="2">mk3</option>
+            <option value="3">mk5</option>
+            <option value="4" selected>mk5-xl</option>
+            <option value="5">round</option>
+            <option value="6">stripes</option>
+            <option value="7">corner</option>
+        </select></label><br><br>
+
+    <label>Astonishment: <select id="mod_owo">
+            <option value="0">animated heart</option>
+            <option value="1">squinted</option>
+            <option value="2">round2</option>
+            <option value="3" selected>round1</option>
+            <option value="4">corner</option>
+        </select></label><br><br>
+
+    <label>Angery eyes: <select id="mod_zloy">
+            <option value="0">round2</option>
+            <option value="1">round1</option>
+            <option value="2">double eye</option>
+            <option value="3" selected>angry</option>
+        </select></label><br><br>
+
+    <label>Death eyes: <select id="mod_kill">
+            <option value="0">alt-squinted</option>
+            <option value="1" selected>X</option>
+            <option value="2">stripe</option>
+            <option value="3">squinted</option>
+            <option value="4">wide X</option>
+        </select></label><br><br>
+
+    <label>Astonishment mouth: <select id="alt_owo">
+            <option value="0">no change</option>
+            <option value="1">oWo</option>
+            <option value="2">stripe</option>
+            <option value="3" selected>saw</option>
+        </select></label><br><br>
+
+    <label>Anger mouth: <select id="alt_ang">
+            <option value="0">no change</option>
+            <option value="1">grin</option>
+            <option value="2">grin2</option>
+            <option value="3" selected>grin3</option>
+        </select></label><br><br>
+
+    <label>Death mouth: <select id="alt_kill">
+            <option value="0">no change</option>
+            <option value="1" selected>classic</option>
+            <option value="2">stripe</option>
+            <option value="3">stripe with tongue</option>
+        </select></label><br><br>
+
+    <pre id="output"></pre>
+
+    <script>
+        // Set defaults
+        ['mod_jaws', 'mod_eye', 'mod_nose', 'mod_owo', 'mod_zloy', 'mod_kill', 'alt_owo', 'alt_ang', 'alt_kill']
+            .forEach(id => document.getElementById(id).value =
+                id == 'mod_jaws' ? '3' : id == 'mod_eye' ? '0' : id == 'mod_nose' ? '4' :
+                    id == 'mod_owo' ? '3' : id == 'mod_zloy' ? '3' : id == 'mod_kill' ? '1' : '3');
+
+        document.querySelectorAll('select').forEach(s => s.onchange = generateConfig);
+
+        function getConfig() {
+            return {
+                mod_jaws: document.getElementById('mod_jaws').value,
+                mod_eye: document.getElementById('mod_eye').value,
+                mod_nose: document.getElementById('mod_nose').value,
+                mod_owo: document.getElementById('mod_owo').value,
+                mod_zloy: document.getElementById('mod_zloy').value,
+                mod_kill: document.getElementById('mod_kill').value,
+                alt_owo: document.getElementById('alt_owo').value,
+                alt_ang: document.getElementById('alt_ang').value,
+                alt_kill: document.getElementById('alt_kill').value
+            };
+        }
+
+        function generateConfig() {
+            const config = getConfig();
+            document.getElementById('output').textContent =
+                Object.entries(config).map(([k, v]) => `#define ${k} ${v}`).join('\n');
+        }
+
+        async function fetchConfig() {
+            try {
+                const res = await fetch('/api/config', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        username: document.getElementById('username').value,
+                        password: document.getElementById('password').value
+                    })
+                });
+                const data = await res.json();
+                if (data.success) {
+                    Object.entries(data.config).forEach(([k, v]) =>
+                        document.getElementById(k).value = v);
+                    generateConfig();
+                } else {
+                    alert('Login failed: ' + data.error);
+                }
+            } catch (e) { alert('Error: ' + e); }
+        }
+
+        async function saveConfig() {
+            try {
+                const res = await fetch('/api/config', {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        username: document.getElementById('username').value,
+                        password: document.getElementById('password').value,
+                        config: getConfig()
+                    })
+                });
+                const data = await res.json();
+                alert(data.success ? 'Saved!' : 'Save failed: ' + data.error);
+            } catch (e) { alert('Error: ' + e); }
+        }
+
+        generateConfig();
+    </script>
 </body>
+
 </html>

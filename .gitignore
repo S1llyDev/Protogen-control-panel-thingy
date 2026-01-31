@@ -1,5 +1,7 @@
 /target
-/pbase
+/pbase.json
 /py/tests
 /passHashes
-/pg_dbase
+/src
+/py
+/tests.py
