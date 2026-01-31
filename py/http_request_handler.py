@@ -12,7 +12,6 @@ else:
     verbose_mode = 0
 
 def execute(cmd, output_capturing):
-    # Раскрываем ~ и переменные окружения перед запуском
     cmd = f"bash -c {subprocess.list2cmdline([cmd])}" if "~" in cmd else cmd
     
     if output_capturing == 1:
@@ -20,7 +19,6 @@ def execute(cmd, output_capturing):
         verbose(result.stdout.strip())
         return result.stdout.strip()
     else:
-        # Теперь execute(cmd, 0) корректно отрабатывает здесь
         subprocess.run(cmd, shell=True, capture_output=False, text=True)
 
 def verbose(text):
@@ -41,12 +39,11 @@ def remove_not_needed_slashes(var):
     return var
 
 def change_file(_id, var, value):
-    # Раскрываем путь для os.path
     raw_path = f"$PG_WEB_PANEL/pg_dbase/{_id}/{var}"
     full_path = os.path.expanduser(os.path.expandvars(raw_path))
     
     if os.path.exists(full_path):
-        execute(f'echo "{value}" > {raw_path}', 0) # Добавлено , 0
+        execute(f'echo "{value}" > {raw_path}', 0)
         verbose(f'Ran echo "{value}" > {raw_path}')
     else:
         print(f"Invalid path: {full_path}")
@@ -59,7 +56,6 @@ def checkPass(_id, password):
         print("ID is not a number")
         sys.exit(3)
 
-    # Используем расширенный путь, чтобы grep не споткнулся о тильду
     file_path = os.path.expanduser(os.path.expandvars("$PG_WEB_PANEL/passHashes"))
     line = execute(f"grep '^{_id}|' {file_path}", 1)
 
@@ -101,6 +97,8 @@ try:
     if action == "SET":
         if checkPass(_id, password) == 1:
             change_file(_id, var, value)
+    elif action == "GET":
+        sys.exit(0)
 
 except (ValueError, IndexError):
     sys.exit(1)
