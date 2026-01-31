@@ -41,18 +41,20 @@ fn handle_connection(mut stream: TcpStream) {
     eprintln!("");
 
     Command::new("python")
-        .arg("py/idunnohowtonamedissorry.py")
+        .arg("py/http_request_handler.py")
         .arg(&http_request[0])
         .spawn()
-        .expect("There was an issue with python");
+        .expect("There was an issue with Python, make sure its and needed libraries are installed");
 
     let request_line = &http_request[0];
     let (status_line, filename) = match &request_line[..] {
-        // "GET / HTTP/1.1" => ("HTTP/1.1 200 OK", "web/index.html"),
+        "GET / HTTP/1.1" => ("HTTP/1.1 200 OK", "web/index.html"),
         // "GET /index.css HTTP/1.1" => ("HTTP/1.1 200 OK", "styles/index.css"),
         // "GET /global.css HTTP/1.1" => ("HTTP/1.1 200 OK", "styles/global.css"),
 
-        _ => ("HTTP/1.1 200 OK", "web/success.html"),
+        // "GET /{ID}/GET/{VAR} " => ("HTTP/1.1 200 OK", "web/redirect.html"),
+
+        _ => ("HTTP/1.1 200 OK", "web/redirect.html"),
 
         // example of thing if u need to run some code b4 giving file to browser
         // "GET /global.css HTTP/1.1" => { 

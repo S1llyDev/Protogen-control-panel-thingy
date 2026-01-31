@@ -1,3 +1,5 @@
 /target
 /pbase
-/test.py
+/py/tests
+/passHashes
+/pg_dbase
