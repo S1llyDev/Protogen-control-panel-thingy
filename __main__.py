@@ -7,25 +7,25 @@ from fastapi import FastAPI, HTTPException
 from socketserver import ThreadingMixIn
 from argon2 import PasswordHasher
 
-DIR = "/home/kommit/Projects/Protogen/Web-Panel/database"
+DIR = '/home/kommit/Projects/Protogen/Web-Panel/database'
 
 hashes_path = os.path.expanduser(os.path.expandvars('$PG_WEB_PANEL/passHashes'))
 ph = PasswordHasher()
 
 
 
-if "-v" in sys.argv:
+if '-v' in sys.argv:
     verbose_mode = 1
     print(sys.argv)
-    v_index = sys.argv.index("-v")
+    v_index = sys.argv.index('-v')
     sys.argv.pop(v_index)
     try:    
-        v_index = sys.argv.index(f"{__name__}.py")
+        v_index = sys.argv.index(f'{__name__}.py')
     except(ValueError):
         try:
-            v_index = sys.argv.index(f"{__name__}")
+            v_index = sys.argv.index(f'{__name__}')
         except:
-            print("Unexcepted error")
+            print('Unexcepted error')
             sys.exit(-1)
     sys.argv.pop(v_index)
     del v_index
@@ -43,15 +43,15 @@ def verbose(text):
 def execute(cmd, output_capturing):
     if output_capturing == 1:
         result = subprocess.run(cmd, shell=True, capture_output=True, text=True)
-        verbose(f"Executed {cmd}")
+        verbose(f'Executed {cmd}')
         verbose(result.stdout.strip())
         return result.stdout.strip()
     else:
         subprocess.run(cmd, shell=True, capture_output=False, text=True)
-        verbose(f"Executed {cmd}")
+        verbose(f'Executed {cmd}')
 
 def read(file):
-    return(execute(f"cat {file}", 1))
+    return(execute(f'cat {file}', 1))
     
 
 
@@ -60,22 +60,22 @@ def passCheck(_id, password):
     try:
         int(_id)
     except ValueError:
-        print("ID is not a number")
+        print('ID is not a number')
         sys.exit(3)
     try:
         _hash = json.dumps(json.loads(read(f'{DIR}/pbase.json'))['1']['hash'])[1:][:-1]
         verbose(_hash)
     except(KeyError):
-        print(f"User with ID {_id} not found in file")
+        print(f'User with ID {_id} not found in file')
         sys.exit(3)
     try:
         ph.verify(_hash, password)
         return(1)
     except VerifyMismatchError:
-        print("Invalid password")
+        print('Invalid password')
         return(0)
     except InvalidHashError:
-        print("Invalid hash")
+        print('Invalid hash')
         sys.exit(4)
 
 
@@ -106,59 +106,102 @@ class Handler(BaseHTTPRequestHandler):
 
     def do_POST(self):
         verbose(self.path)
-        if self.path != '/api?config':
+        if self.path == '/api?config' or self.path == '/api!config':
+            pass
+        else:
             self.send_response(404)
             self.end_headers()
             return
         
         content_length = int(self.headers.get('Content-Length', 0))
         post_body = self.rfile.read(content_length).decode('utf-8')
-        verbose(f"Length: {content_length}, Body: {post_body}")
+        verbose(f'Length: {content_length}, Body: {post_body}')
         
         try:
             data = json.loads(post_body)
-            verbose(f"Parsed: {data}")
+            verbose(f'Parsed: {data}')
         except json.JSONDecodeError:
-            self.send_response(400, "Invalid JSON")
+            self.send_response(400, 'Invalid JSON')
             self.end_headers()
             return
         
         # Auth check
-        if passCheck(data.get('username'), data.get('password')) == 0:
-            self.send_response(401, "Auth failed")
+        if passCheck(data.get('username'), data.get('password')) != 1:
+            self.send_response(401, 'Auth failed')
             self.end_headers()
             return
         
-        # FIXED: Send full config for user "1" (Kommit)
-        try:
-            db_content = read(f'{DIR}/pbase.json')  # Fixed path
-            db = json.loads(db_content)
-            user_config = db['1']['config']  # Matches your JSON structure
-            verbose(user_config)
-            
-            self.send_response(200)
-            self.send_header("Content-Type", "application/json")
-            self.end_headers()
-            self.wfile.write(json.dumps({"success": True, "config": user_config}).encode())
-        except Exception as e:
-            verbose(f"Config error: {e}")
-            self.send_response(500, "Config error")
-            self.end_headers()
+        # FIXED: Send full config for user '1' (Kommit)
+        if self.path == '/api?config':
+            try:
+                db_content = read(f'{DIR}/pbase.json')  # Fixed path
+                db = json.loads(db_content)
+                user_config = db['1']['config']  # Matches your JSON structure
+                verbose(user_config)
+                
+                self.send_response(200)
+                self.send_header('Content-Type', 'application/json')
+                self.end_headers()
+                self.wfile.write(json.dumps({'success': True, 'config': user_config}).encode())
+            except Exception as e:
+                verbose(f'Config error: {e}')
+                self.send_response(500, 'Config error')
+                self.end_headers()
+
+        if self.path == '/api!config':
+            try:
+                db_content = read(f'{DIR}/pbase.json')
+                db = json.loads(db_content)
+                user_config = db['1']
+                new_user_config = {
+                    'username': user_config['username'],  # No need for f-string here
+                    'hash': user_config['hash'],
+                    'config': {
+                        'mod_jaws': data['config']['mod_jaws'],
+                        'mod_eye': data['config']['mod_eye'],
+                        'mod_nose': data['config']['mod_nose'],
+                        'mod_owo': data['config']['mod_owo'],
+                        'mod_zloy': data['config']['mod_zloy'],
+                        'mod_kill': data['config']['mod_kill'],
+                        'alt_owo': data['config']['alt_owo'],
+                        'alt_ang': data['config']['alt_ang'],
+                        'alt_kill': data['config']['alt_kill'],
+                    }
+                }
+                
+                # Save it back to the database
+                db['1'] = new_user_config
+                
+                # Write the updated db back to file
+                with open(f'{DIR}/pbase.json', 'w') as f:
+                    json.dump(db, f, indent=4)
+                
+                self.send_response(200)
+                self.send_header('Content-Type', 'application/json')
+                self.end_headers()
+                self.wfile.write(json.dumps({'success': True, 'config': new_user_config}).encode())
+            except Exception as e:
+                verbose(f'Config error: {e}')
+                self.send_response(500)
+                self.end_headers()
+                self.wfile.write(json.dumps({'error': str(e)}).encode())
+
+
 
 
 
 
 class ThreadedHTTPServer(ThreadingMixIn, HTTPServer):
-    """Handle requests in a separate thread."""
+    '''Handle requests in a separate thread.'''
 
 if __name__ == '__main__':
     try:
-        address = "localhost:4554"
-        address1= str(address.split(":")[0])
-        address2= int(address.split(":")[1])
+        address = 'localhost:4554'
+        address1= str(address.split(':')[0])
+        address2= int(address.split(':')[1])
         server = ThreadedHTTPServer((f'{address1}', address2), Handler)
         print(f'Starting server on http://{address} use <Ctrl-C> to stop')
         server.serve_forever()
     except(KeyboardInterrupt):
-        print("\nStopping server")
+        print('\nStopping server')
         sys.exit(0)
