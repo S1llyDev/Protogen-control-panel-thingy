@@ -1,5 +1,5 @@
 
-        // Set defaults
+// Set defaults
 fetchConfig()
 
         document.querySelectorAll('select').forEach(s => s.onchange = generateConfig);
@@ -59,7 +59,7 @@ fetchConfig()
             });
 const data = await res.json();
 alert(data.success ? 'Saved!' : 'Save failed: ' + data.error);
-        } catch (e) {alert('Error: ' + e); }
+        } catch (e) {alert('Invalid password')};
     }
 
 generateConfig();

@@ -8,6 +8,7 @@ from socketserver import ThreadingMixIn
 from argon2 import PasswordHasher
 
 DIR = '/home/kommit/Projects/Protogen/Web-Panel/database'
+address = 'localhost:4554'
 
 hashes_path = os.path.expanduser(os.path.expandvars('$PG_WEB_PANEL/passHashes'))
 ph = PasswordHasher()
@@ -63,7 +64,7 @@ def passCheck(_id, password):
         print('ID is not a number')
         sys.exit(3)
     try:
-        _hash = json.dumps(json.loads(read(f'{DIR}/pbase.json'))['1']['hash'])[1:][:-1]
+        _hash = json.dumps(json.loads(read(f'{DIR}/pbase.json'))[f'{_id}']['hash'])[1:][:-1]
         verbose(_hash)
     except(KeyError):
         print(f'User with ID {_id} not found in file')
@@ -196,7 +197,6 @@ class ThreadedHTTPServer(ThreadingMixIn, HTTPServer):
 
 if __name__ == '__main__':
     try:
-        address = 'localhost:4554'
         address1= str(address.split(':')[0])
         address2= int(address.split(':')[1])
         server = ThreadedHTTPServer((f'{address1}', address2), Handler)
