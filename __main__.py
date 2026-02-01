@@ -6,32 +6,51 @@ from fastapi import FastAPI, HTTPException
 from socketserver import ThreadingMixIn
 from argon2 import PasswordHasher
 
-DIR = "/home/kommit/Projects/Protogen/Web-Panel/pbase.json"
+DIR = "/home/kommit/Projects/Protogen/Web-Panel/database/"
 
-database = json.loads(execute(f'cat {DIR}', 1))
 hashes_path = os.path.expanduser(os.path.expandvars('$PG_WEB_PANEL/passHashes'))
 ph = PasswordHasher()
 
 
 
-def SET(_id, password, var, value, self):
-    if passCheck(_id, password) == 1:
-        self.send_response(200)
-        self.wfile.write(b'OK')
+if "-v" in sys.argv:
+    verbose_mode = 1
+    print(sys.argv)
+    v_index = sys.argv.index("-v")
+    sys.argv.pop(v_index)
+    try:    
+        v_index = sys.argv.index(f"{__name__}.py")
+    except(ValueError):
+        try:
+            v_index = sys.argv.index(f"{__name__}")
+        except:
+            print("Unexcepted error")
+            sys.exit(-1)
+    sys.argv.pop(v_index)
+    del v_index
+    print(sys.argv)
+else:
+    verbose_mode = 0
 
 
-
-def GET(_id, password, var, self):
-    try:
-        if passCheck(_id, password) == 1:
-            self.send_response(200)
-            self.end_headers()
-            self.wfile.write(b'S\n')
-    except FileNotFoundError:
-        self.send_response(404)
-        self.end_headers()
-        self.wfile.write(b'File not found')
+def verbose(text):
+    if verbose_mode == 1:
+        print(text)
+    else:
         return
+
+def execute(cmd, output_capturing):
+    if output_capturing == 1:
+        result = subprocess.run(cmd, shell=True, capture_output=True, text=True)
+        verbose(f"Executed {cmd}")
+        verbose(result.stdout.strip())
+        return result.stdout.strip()
+    else:
+        subprocess.run(cmd, shell=True, capture_output=False, text=True)
+        verbose(f"Executed {cmd}")
+
+def read(file):
+    return(execute(f"cat {file}", 1))
     
 
 
@@ -57,72 +76,121 @@ def passCheck(_id, password):
     except Exception as e:
         verbose(f"Unexpected error: {e}")
         sys.exit(-1)
-    
-
-def execute(cmd, output_capturing):
-    if output_capturing == 1:
-        result = subprocess.run(cmd, shell=True, capture_output=True, text=True)
-        verbose(f"Executed {cmd}")
-        verbose(result.stdout.strip())
-        return result.stdout.strip()
-    else:
-        subprocess.run(cmd, shell=True, capture_output=False, text=True)
-        verbose(f"Executed {cmd}")
 
 
 
-if "-v" in sys.argv:
-    verbose_mode = 1
-    print(sys.argv)
-    v_index = sys.argv.index("-v")
-    sys.argv.pop(v_index)
-    del v_index
-    print(sys.argv)
-else:
-    verbose_mode = 0
 
 class Handler(BaseHTTPRequestHandler):
     def do_GET(self):
-        if self.path != '/favicon.ico':
-            verbose(self.path)
-        if self.path == '/':
+        verbose(self.path)
+        if self.path == '/' or self.path == '/ ':
             self.path = '/web/index.html'
-        else:
-            path = self.path
-            while path.find('//') != -1:
-                self.path=path.replace('//', '/')
-            while path[0] == '/':
-                path=path[1:]
-            while path[-1] == '/':
-                path=path[:-1]
-            if self.path != '/favicon.ico':
-                verbose(self.path)
-            self.path = path
-            path = self.path.split("/")
-            if path[0] == 'SET':
-                SET(path[1],path[2],path[3],path[4],self)
-            elif path[0] == 'GET':
-                GET(path[1],path[2],path[3],self)
-            else:
-                self.send_response(404)
-                self.end_headers()
-                self.wfile.write(b'Unknown request')
-
-
+        if self.path == '/preview':
+            self.path = '/web/preview.html'
+        
+            # path = self.path
+            # while path.find('//') != -1:
+            #     self.path=path.replace('//', '/')
+            # while path[0] == '/':
+            #     path=path[1:]
+            # while path[-1] == '/':
+            #     path=path[:-1]
+            # self.path = path
+            # path = self.path.split("/")
+            # if path[0] == 'SET':
+            #     SET(path[1],path[2],path[3],path[4],self)
+            # elif path[0] == 'GET':
+            #     GET(path[1],path[2],path[3],self)
         try:
             with open('.' + self.path, 'rb') as f:
                 content = f.read()
         except FileNotFoundError:
-            if self.path.split("/") != 'SET' or self.path.split("/") != 'GET':
-                self.send_response(404)
-                self.end_headers()
-                self.wfile.write(b'Unknown request')
+            self.send_response(404)
+            self.end_headers()
+            self.wfile.write(b'Unknown request')
             return
         
         self.send_response(200)
         self.send_header('Content-Type', 'text/html')
         self.end_headers()
         self.wfile.write(content)
+
+    def do_POST(self):
+        path_split = self.path[1:].split("/")
+        verbose(path_split)
+        content_length = int(self.headers.get('Content-Length', 0))
+        verbose(content_length)
+        post_body_string = self.rfile.read(content_length).decode('utf-8')
+        verbose(post_body_string)
+        content_type = self.headers.get('Content-Type', '')
+        data = {}
+        if 'application/json' in content_type:
+            try:
+                data = json.loads(post_body_string)
+            except json.JSONDecodeError:
+                print("Error parsing JSON")
+        else:
+            print(f"Received raw data of type {content_type}: {post_body_string}")
+
+
+        print(f"Received POST data: {data}")
+        verbose(self.path)
+
+        content_length = int(self.headers.get('Content-Length', 0))
+        verbose(content_length)
+        post_body_string = self.rfile.read(content_length).decode('utf-8')
+        verbose(post_body_string)
+        content_type = self.headers.get('Content-Type', '')
+        data = {}
+        if 'application/json' in content_type:
+            try:
+                data = json.loads(post_body_string)
+            except json.JSONDecodeError:
+                print("Error parsing JSON")
+        else:
+            print(f"Received raw data of type {content_type}: {post_body_string}")
+
+
+            print(f"Received POST data: {data}")
+
+            self.send_response(200)
+            self.send_header("Content-type", "application/json")
+            self.end_headers()
+            response_message = "{ }"
+            self.wfile.write(response_message.encode("utf-8"))
+
+
+
+
+
+
+        if self.path == '/api?config': # /api?config/VAR/VALUE
+            self.send_response(200)
+            self.send_header("Content-type", "application/json")
+            self.end_headers()
+            response_message = json.dumps(json.loads(read(f"{DIR}pbase.json"))['1']['config'])
+            verbose(json.dumps(json.loads(read(f"{DIR}pbase.json"))['1']['config']))
+            verbose(json.dumps(json.loads(read(f"{DIR}pbase.json"))['1']['config']).encode('utf-8'))
+            # verbose(read(f"{DIR}/pbase.json"))
+            # response_message = '1'
+            self.wfile.write(response_message.encode("utf-8"))
+
+        # database = json.loads(execute(f'cat {DIR}/{self.path.split("/")[1]}', 1))
+        # try:
+        #     with open('.' + self.path, 'rb') as f:
+        #         content = f.read()
+        # except FileNotFoundError:
+        #     if self.path.split("/") != 'SET' or self.path.split("/") != 'GET':
+        #         self.send_response(404)
+        #         self.end_headers()
+        #         self.wfile.write(b'Unknown request')
+        #     return
+        
+        # self.send_response(200)
+        # self.send_header('Content-Type', 'text/html')
+        # self.end_headers()
+        # self.wfile.write(content)
+
 
 class ThreadedHTTPServer(ThreadingMixIn, HTTPServer):
     """Handle requests in a separate thread."""
