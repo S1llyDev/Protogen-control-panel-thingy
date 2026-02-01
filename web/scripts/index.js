@@ -1,9 +1,6 @@
 
         // Set defaults
-    ['mod_jaws', 'mod_eye', 'mod_nose', 'mod_owo', 'mod_zloy', 'mod_kill', 'alt_owo', 'alt_ang', 'alt_kill']
-            .forEach(id => document.getElementById(id).value =
-    id == 'mod_jaws' ? '3' : id == 'mod_eye' ? '0' : id == 'mod_nose' ? '4' :
-    id == 'mod_owo' ? '3' : id == 'mod_zloy' ? '3' : id == 'mod_kill' ? '1' : '3');
+fetchConfig()
 
         document.querySelectorAll('select').forEach(s => s.onchange = generateConfig);
 
@@ -35,7 +32,7 @@
     body: JSON.stringify({
         username: document.getElementById('username').value,
         password: document.getElementById('password').value,
-        _fetch: "config"
+        // _fetch: "config"
                     })
                 });
     const data = await res.json();
@@ -46,7 +43,7 @@
                 } else {
         alert('Fetch failed: ' + data.error);
                 }
-            } catch (e) {alert('Error: ' + e); }
+            } catch (e) {console.log('Error: ' + e); }
         }
 
     async function saveConfig() {
